@@ -3,4 +3,8 @@
   (:nicknames #:q)
   (:export
    #:delay
-   #:force))
+   #:force
+   #:cons-stream
+   #:stream-car
+   #:stream-cdr
+   #:stream-null?))
