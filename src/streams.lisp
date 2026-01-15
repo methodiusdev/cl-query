@@ -1,3 +1,5 @@
+(in-package :cl-query)
+
 (defmacro delay (expr)
   `(lambda () ,expr))
 
@@ -9,5 +11,5 @@
 
 (defun stream-car (stream) (car stream))
 (defun stream-cdr (stream) (force (cdr stream)))
-
+(defun stream-null? (stream) (null stream))
 
