@@ -37,10 +37,24 @@
 		   (apply #'create-stream (cdr elements)))))
 
 (defun list->stream (list)
-  )
+  "Converts LIST to a stream."
+  (apply #'create-stream list))
 
-(defun stream->list (stream)
-  )
+(defun stream->list (stream &optional (max-elements nil))
+  "Converts STREAM to a list.
+   If MAX-ELEMENTS specified - convert at most that many elements.
+   WARN: This will hang on infinite streams without MAX-ELEMENTS."
+  (cond ((stream-null? stream) '())
+	((and max-elements (<= max-elements 0)) '())
+	(t (cons (stream-car stream)
+		 (stream->list (stream-cdr stream)
+			       (if max-elements (1- max-elements) nil))))))
 
-(defun vector->stream (stream)
-  )
+(defun vector->stream (vector)
+  "Converts VECTOR to a stream."
+  (labels ((vec->stream (index)
+	     (if (>= index (length vector))
+		 empty-stream
+		 (cons-stream (aref vector index)
+			      (vec->stream (1+ index))))))
+    (vec->stream 0)))

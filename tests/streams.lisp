@@ -31,7 +31,7 @@
     (5am:is (stream-null? (stream-cdr (stream-cdr s))))))
 
 (5am:test empty-stream-test
-  "Test empty stream behavior"
+  "Test empty stream behavior."
   (5am:is (stream-null? empty-stream))
   (5am:signals error (stream-car empty-stream))
   (5am:signals error (stream-cdr empty-stream)))
@@ -49,3 +49,19 @@
     (stream-cdr s)
     (5am:is (not (null tail-evaluated?)))))
 
+(5am:test list-to-stream-conversion
+  "Test converting lists to streams."
+  (let ((s (list->stream '(:a :b :c :d :e))))
+    (5am:is (eq :a (stream-car s)))
+    (5am:is (eq :b (stream-car (stream-cdr s))))))
+
+(5am:test streams-to-list-conversion
+  "Test converting streams to lists."
+  (let ((s (create-stream 1 2 3 4 5)))
+    (5am:is (equal '(1 2 3 4 5) (stream->list s)))))
+
+(5am:test vector-to-stream-conversion
+  "Test converting vectors to streams."
+  (let ((s (vector->stream #(1 2 3 4 5))))
+    (5am:is (= 1 (stream-car s)))
+    (5am:is (= 2 (stream-car (stream-cdr s))))))

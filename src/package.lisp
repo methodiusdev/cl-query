@@ -11,5 +11,5 @@
    #:stream-null?
    #:create-stream
    #:list->stream
-   #:steam->list
+   #:stream->list
    #:vector->stream))
