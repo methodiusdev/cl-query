@@ -8,4 +8,8 @@
    #:stream-car
    #:stream-cdr
    #:empty-stream
-   #:stream-null?))
+   #:stream-null?
+   #:create-stream
+   #:list->stream
+   #:steam->list
+   #:vector->stream))

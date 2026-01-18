@@ -29,4 +29,18 @@
       (error "STREAM-CDR: stream is empty")
       (force (cdr stream))))
 
+(defun create-stream (&rest elements)
+  "Returns a newly allocated stream with ELEMENTS or empty stream."
+  (if (null elements)
+      empty-stream
+      (cons-stream (car elements)
+		   (apply #'create-stream (cdr elements)))))
 
+(defun list->stream (list)
+  )
+
+(defun stream->list (stream)
+  )
+
+(defun vector->stream (stream)
+  )
