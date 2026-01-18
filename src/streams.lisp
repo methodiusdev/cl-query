@@ -14,7 +14,19 @@
   "Constructs a stream with HEAD (evaluated) and TAIL (delayed)."
   `(cons ,head (delay ,tail)))
 
-(defun stream-car (stream) (car stream))
-(defun stream-cdr (stream) (force (cdr stream)))
+(defconstant empty-stream nil
+  "The emtpy stream constant")
+
 (defun stream-null? (stream) (null stream))
+
+(defun stream-car (stream)
+  (if (stream-null? stream)
+      (error "STREAM-CAR: stream is empty")
+      (car stream)))
+
+(defun stream-cdr (stream)
+  (if (stream-null? stream)
+      (error "STREAM-CDR: stream is empty")
+      (force (cdr stream))))
+
 

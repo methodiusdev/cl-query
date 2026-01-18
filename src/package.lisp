@@ -7,4 +7,5 @@
    #:cons-stream
    #:stream-car
    #:stream-cdr
+   #:empty-stream
    #:stream-null?))
