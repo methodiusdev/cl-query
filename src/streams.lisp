@@ -36,6 +36,10 @@
       (cons-stream (car elements)
 		   (apply #'create-stream (cdr elements)))))
 
+(defun integers-from (n)
+  "Creates and returns an infinite stream of integers starting from n"
+  (cons-stream n (integers-from (1+ n))))
+
 (defun list->stream (list)
   "Converts LIST to a stream."
   (apply #'create-stream list))

@@ -49,6 +49,12 @@
     (stream-cdr s)
     (5am:is (not (null tail-evaluated?)))))
 
+(5am:test infinite-integers-from
+  "Test infinite stream of integers."
+  (let ((s (integers-from 100)))
+    (5am:is (= 100 (stream-car s)))
+    (5am:is (= 101 (stream-car (stream-cdr s))))))
+
 (5am:test list-to-stream-conversion
   "Test converting lists to streams."
   (let ((s (list->stream '(:a :b :c :d :e))))

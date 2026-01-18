@@ -12,4 +12,5 @@
    #:create-stream
    #:list->stream
    #:stream->list
-   #:vector->stream))
+   #:vector->stream
+   #:integers-from))
