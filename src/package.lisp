@@ -15,4 +15,9 @@
    #:vector->stream
    #:integers-from
    #:stream-length
-   #:stream-ref))
+   #:stream-ref
+   #:stream-filter
+   #:stream-map
+   #:stream-take
+   #:stream-drop
+   #:stream-fold))

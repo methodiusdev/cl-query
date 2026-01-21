@@ -82,3 +82,14 @@
      (error "STREAM-REF: Index ~a out of bounds" n))
     ((= n 0) (stream-car stream))
     (t (stream-ref (stream-cdr stream) (1- n)))))
+
+;;WHERE
+(defun stream-filter (predicate stream) nil)
+;;SELECT
+(defun stream-map (fn stream) nil)
+;;TAKE
+(defun stream-take (n stream) nil)
+;;SKIP
+(defun stream-drop (n stream) nil)
+;;AGGREGATE
+(defun stream-fold (fn init stream) nil)
