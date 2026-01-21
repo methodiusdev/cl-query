@@ -13,4 +13,6 @@
    #:list->stream
    #:stream->list
    #:vector->stream
-   #:integers-from))
+   #:integers-from
+   #:stream-length
+   #:stream-ref))

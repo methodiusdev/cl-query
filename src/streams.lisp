@@ -62,3 +62,23 @@
 		 (cons-stream (aref vector index)
 			      (vec->stream (1+ index))))))
     (vec->stream 0)))
+
+(defun stream-length (stream &optional max)
+  "Returns the length of STREAM.
+   If MAX is specified, counts at most MAX elements.
+   Warning: This will hang on infinite streams without MAX!"
+  (labels ((length-iter (s count)
+	     (cond ((and max (<= max count)) count)
+		   ((stream-null? s) count)
+		   (t (length-iter (stream-cdr s) (1+ count))))))
+    (length-iter stream 0)))
+
+(defun stream-ref (stream n)
+  "Returns the N-th elements of STREAM (0-indexed).
+   Signals an error if stream has fever than N+1 elements."
+  (cond
+    ((stream-null? stream)
+     ; make this work properly
+     (error "STREAM-REF: Index ~a out of bounds" n))
+    ((= n 0) (stream-car stream))
+    (t (stream-ref (stream-cdr stream) (1- n)))))

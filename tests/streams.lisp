@@ -71,3 +71,18 @@
   (let ((s (vector->stream #(1 2 3 4 5))))
     (5am:is (= 1 (stream-car s)))
     (5am:is (= 2 (stream-car (stream-cdr s))))))
+
+(5am:test stream-ref-access
+  "Test random access to stream elements."
+  (let ((s (list->stream '(a b c d e))))
+    (5am:is (eq 'a (stream-ref s 0)))
+    (5am:is (eq 'c (stream-ref s 2)))
+    (5am:is (eq 'e (stream-ref s 4)))
+    (5am:signals error (stream-ref s 10))))
+
+(5am:test stream-length-computation
+  "Test stream length calculation."
+  (5am:is (= 0 (stream-length empty-stream)))
+  (5am:is (= 5 (stream-length (list->stream '(1 2 3 4 5)))))
+  ;; Test max parameter with infinite stream
+  (5am:is (= 100 (stream-length (integers-from 0) 100))))
