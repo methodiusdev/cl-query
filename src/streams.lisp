@@ -66,7 +66,7 @@
 (defun stream-length (stream &optional max)
   "Returns the length of STREAM.
    If MAX is specified, counts at most MAX elements.
-   Warning: This will hang on infinite streams without MAX!"
+   WARN: This will hang on infinite streams without MAX!"
   (labels ((length-iter (s count)
 	     (cond ((and max (<= max count)) count)
 		   ((stream-null? s) count)
@@ -84,12 +84,45 @@
     (t (stream-ref (stream-cdr stream) (1- n)))))
 
 ;;WHERE
-(defun stream-filter (predicate stream) nil)
+(defun stream-filter (predicate stream)
+  "Returns a stream containing only elements of STREAM that satisfy PREDICATE.
+   PREDICATE should be a function of one argument returning boolean."
+  (cond ((stream-null? stream) empty-stream)
+	((funcall predicate (stream-car stream))
+	 (cons-stream (stream-car stream)
+		      (stream-filter predicate (stream-cdr stream))))
+	(t (stream-filter predicate (stream-cdr stream)))))
 ;;SELECT
-(defun stream-map (fn stream) nil)
+(defun stream-map (fn stream)
+  "Applies FN to each element of STREAM, returning a new stream.
+   FN should be a function of one argument."
+  (if (stream-null? stream)
+      empty-stream
+      (cons-stream (funcall fn (stream-car stream))
+		   (stream-map fn (stream-cdr stream)))))
 ;;TAKE
-(defun stream-take (n stream) nil)
+(defun stream-take (n stream)
+  "Returns a new stream containing the first N elements of STREAM."
+  (if (or (<= n 0) (stream-null? stream))
+      empty-stream
+      (cons-stream (stream-car stream)
+		   (stream-take (1- n) (stream-cdr stream)))))
 ;;SKIP
-(defun stream-drop (n stream) nil)
+(defun stream-drop (n stream)
+  "Returns a stream with the first N elements removed."
+  (cond ((<= n 0) stream)
+	((stream-null? stream) empty-stream)
+	(t (stream-drop (1- n) (stream-cdr stream)))))
 ;;AGGREGATE
-(defun stream-fold (fn init stream) nil)
+(defun stream-fold (fn init stream &optional (max-elements nil))
+  "Folds STREAM using FN and initial value INIT (left fold).
+   FN should be a function of two arguments: (accumulator element).
+   If MAX-ELEMENTS is specified, processes at most that many elements.
+   WARN: This will hang on infinite streams without MAX-ELEMENTS!"
+  (if (or (and max-elements (<= max-elements 0))
+	  (stream-null? stream))
+      init
+      (stream-fold fn
+		   (funcall fn init (stream-car stream))
+		   (stream-cdr stream)
+		   (if max-elements (1- max-elements) nil))))
