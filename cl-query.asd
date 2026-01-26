@@ -8,7 +8,8 @@
   :components ((:module "src"
 		:components
 		((:file "package")
-		 (:file "streams")))))
+		 (:file "streams")
+		 (:file "query")))))
 
 (asdf:defsystem #:cl-query/tests
   :description "Tests for cl-query"

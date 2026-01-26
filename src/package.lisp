@@ -20,4 +20,11 @@
    #:stream-map
    #:stream-take
    #:stream-drop
-   #:stream-fold))
+   #:stream-fold
+   #:query
+   #:from
+   #:select
+   #:where
+   #:take
+   #:skip
+   #:->))
