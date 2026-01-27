@@ -21,10 +21,12 @@
    #:stream-take
    #:stream-drop
    #:stream-fold
+   #:stream-distinct
    #:query
    #:from
    #:select
    #:where
    #:take
    #:skip
+   #:distinct
    #:->))

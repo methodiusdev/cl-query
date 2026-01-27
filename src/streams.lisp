@@ -126,3 +126,21 @@
 		   (funcall fn init (stream-car stream))
 		   (stream-cdr stream)
 		   (if max-elements (1- max-elements) nil))))
+;;DISTINCT
+(defun stream-distinct (stream &key (test #'eql))
+  "Returns a stream with duplicate elements removed.
+   TEST is the equality predicate (default: #'eql).
+   Note: This maintains a seen-set in memory, so it's not suitable for
+   truly infinite streams with infinite distinct values."
+  (labels ((distinct-helper (s seen)
+             (cond
+               ((stream-null? s) empty-stream)
+               ((member (stream-car s) seen :test test)
+                ;; Already seen, skip it
+                (distinct-helper (stream-cdr s) seen))
+               (t
+                ;; New element, add to seen and include in output
+                (cons-stream (stream-car s)
+                            (distinct-helper (stream-cdr s)
+                                           (cons (stream-car s) seen)))))))
+    (distinct-helper stream '())))

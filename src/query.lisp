@@ -52,6 +52,13 @@
   (make-instance 'query
                  :source (stream-drop n (source-stream q))))
 
+(defgeneric distinct (query &key test)
+  (:documentation "Removes duplicate elements."))
+
+(defmethod distinct ((q query) &key (test #'eql))
+  (make-instance 'query
+                 :source (stream-distinct (source-stream q) :test test)))
+
 (defgeneric to-list (query &optional max-elements)
   (:documentation "Materializes the query into a list."))
 
