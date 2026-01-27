@@ -28,5 +28,6 @@
    #:where
    #:take
    #:skip
+   #:aggregate
    #:distinct
    #:->))

@@ -59,6 +59,12 @@
   (make-instance 'query
                  :source (stream-distinct (source-stream q) :test test)))
 
+(defgeneric aggregate (query fn &optional initial-value max-elements)
+  (:documentation "Aggregates elements using FN."))
+
+(defmethod aggregate ((q query) fn &optional (initial-value 0) max-elements)
+  (stream-fold fn initial-value (source-stream q) max-elements))
+
 (defgeneric to-list (query &optional max-elements)
   (:documentation "Materializes the query into a list."))
 
