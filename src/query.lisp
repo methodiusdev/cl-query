@@ -65,6 +65,13 @@
 (defmethod aggregate ((q query) fn &optional (initial-value 0) max-elements)
   (stream-fold fn initial-value (source-stream q) max-elements))
 
+(defgeneric group-by (query key-fn &key test)
+  (:documentation "Groups elements by KEY-FN."))
+
+(defmethod group-by ((q query) key-fn &key (test #'eql))
+  (make-instance 'query
+                 :source (stream-group-by key-fn (source-stream q) :test test)))
+
 (defgeneric to-list (query &optional max-elements)
   (:documentation "Materializes the query into a list."))
 

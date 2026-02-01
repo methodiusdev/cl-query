@@ -22,6 +22,7 @@
    #:stream-drop
    #:stream-fold
    #:stream-distinct
+   #:stream-group-by
    #:query
    #:from
    #:select
@@ -30,4 +31,5 @@
    #:skip
    #:aggregate
    #:distinct
+   #:group-by
    #:->))

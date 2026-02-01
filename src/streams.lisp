@@ -144,3 +144,36 @@
                             (distinct-helper (stream-cdr s)
                                            (cons (stream-car s) seen)))))))
     (distinct-helper stream '())))
+
+(defstruct group
+  "Represents a group with a key and stream of values"
+  key
+  values)
+
+;;; TODO: Make an optimized version when used with ORDER-BY
+(defun stream-group-by (key-fn stream &key (test #'eql))
+  "Groups elements of STREAM by the result of KEY-FN.
+   Returns a stream of GROUP structures, each containing a key and a stream of values.
+   TEST is the equality predicate for comparing keys (default: #'eql).
+
+   Note: This is NOT fully lazy - it must materialize the entire input stream
+   to group elements."
+  ;; First, materialize the stream into a list
+  ;; (yes, this for sure needs to be optimized later)
+  (let ((elements (stream->list stream)))
+    (if (null elements)
+        empty-stream
+        (let ((groups (make-hash-table :test test)))
+          ;; Build hash table of key -> list of values
+          (dolist (elem elements)
+            (let ((key (funcall key-fn elem)))
+              (push elem (gethash key groups))))
+          ;; Convert hash table to stream of groups
+          (let ((group-list '()))
+            (maphash (lambda (key values)
+                       (push (make-group
+                              :key key
+                              :values (list->stream (reverse values)))
+                             group-list))
+                     groups)
+            (list->stream group-list))))))
