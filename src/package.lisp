@@ -32,4 +32,8 @@
    #:aggregate
    #:distinct
    #:group-by
-   #:->))
+   #:->
+
+   #:query-provider
+   #:execute-provider
+   #:provider-name))
