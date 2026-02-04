@@ -36,4 +36,5 @@
 
    #:query-provider
    #:execute-provider
-   #:provider-name))
+   #:provider-name
+   #:csv-provider))
