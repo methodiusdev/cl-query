@@ -84,14 +84,11 @@
                           empty-stream)))))
          (read-lines))))
     (string
-     ;; Parse string as CSV
-     (with-input-from-string (string-stream source)
-       (labels ((read-lines ()
-                  (let ((line (read-line string-stream nil nil)))
-                    (if line
-                        (cons-stream line (read-lines))
-                        empty-stream))))
-         (read-lines))))))
+     ;; Split string into lines (eager - happens immediately)
+     (let ((lines (uiop:split-string source :separator '(#\Newline #\Return))))
+       (setf lines (remove-if (lambda (line) (zerop (length line)))
+                              lines :from-end t :count 1))
+       (list->stream lines)))))
 
 (defun parse-csv-stream (lines-stream provider line-number)
   "Parses a stream of lines into a stream of csv-row structures.
@@ -168,3 +165,70 @@
             for field in (csv-row-fields row)
             do (setf (gethash header ht) field))
       ht)))
+
+
+(defun from-csv (source &key
+                        (delimiter #\,)
+                        (has-header t)
+                        (skip-empty-lines t)
+                        (trim-fields t)
+                        (format :alist))
+  "Returns a query where each element is a row in the specified format.
+
+   SOURCE can be:
+   - pathname: path to CSV file (e.g., #P\"data.csv\")
+   - string: CSV content as string (e.g., \"name,age\\nAlice,30\")
+
+   Options:
+   - :delimiter - field delimiter character (default: comma)
+   - :has-header - whether first row is header (default: t)
+   - :skip-empty-lines - skip empty lines (default: t)
+   - :trim-fields - trim whitespace from fields (default: t)
+   - :format - how to return rows:
+     - :alist - alist with keyword keys (default)
+     - :plist - plist with keyword keys
+     - :hash-table - hash table with string keys
+     - :fields - just the list of fields
+     - :raw - raw csv-row structures
+
+   Example:
+   (-> (from-csv \"name,age\\nAlice,30\\nBob,25\")
+       (where (lambda (row) (> (parse-integer (cdr (assoc :age row))) 28)))
+       (to-list))"
+  (let* ((provider (make-instance 'csv-provider
+                                 :delimiter delimiter
+                                 :has-header has-header
+                                 :skip-empty-lines skip-empty-lines
+                                 :trim-fields trim-fields))
+         (table (execute-provider provider source))
+         (headers (csv-table-headers table))
+         (rows-stream (csv-table-rows table)))
+    ;; Convert rows to requested format
+    (let ((formatted-stream
+           (case format
+             (:alist
+              (stream-map (lambda (row) (csv-row-as-alist row headers))
+                         rows-stream))
+             (:plist
+              (stream-map (lambda (row) (csv-row-as-plist row headers))
+                         rows-stream))
+             (:hash-table
+              (stream-map (lambda (row) (csv-row-as-hash-table row headers))
+                         rows-stream))
+             (:fields
+              (stream-map #'csv-row-fields rows-stream))
+             (:raw
+              rows-stream)
+             (t
+              (error "Unknown format: ~A. Use :alist, :plist, :hash-table, :fields, or :raw"
+                     format)))))
+      ;; Return a query object
+      (make-instance 'query
+                    :source formatted-stream
+		    ;; TODO add metadata to query class
+                    ;; :metadata (list :provider provider
+                    ;;               :headers headers
+                    ;;               :format format)
+		    ))))
+
+;;TODO make memory-provider class and move from function here
