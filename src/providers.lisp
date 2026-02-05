@@ -41,11 +41,102 @@
   "csv")
 
 (defstruct csv-row
-  "Represents a parsed CSV row"
+  "Represents a parsed CSV row."
   (fields nil :type list)
   (line-number 0 :type integer))
 
 (defstruct csv-table
-  "Represents a CSV table with headers"
+  "Represents a CSV table with headers."
   (headers nil :type list)
   (rows nil :type cons)) ; stream of csv-row
+
+(defun split-csv-line (line &optional (delimiter #\,))
+  "Splits a csv line into fields."
+  (split-sequence:split-sequence delimiter line))
+
+(defun trim-field (field)
+  "Trims whitespace from a field string."
+  (string-trim '(#\Space #\Tab #\Return #\Newline) field))
+
+(defun parse-csv-line (line delimiter trim-fields line-number)
+  "Parses a single CSV line into a csv-row structure."
+  (let ((fields (split-csv-line line delimiter)))
+    (when trim-fields
+      (setf fields (mapcar #'trim-field fields)))
+    (make-csv-row :fields fields :line-number line-number)))
+
+(defun csv-lines-stream (source)
+  "Creates a stream of lines from SOURCE.
+   SOURCE can be:
+   - pathname: reads from file
+   - string: parses string as CSV
+   Returns a stream where each element is a line string."
+  (etypecase source
+    (pathname
+     ;; Read from file
+     (let ((file-stream (open source :direction :input :if-does-not-exist :error)))
+       (labels ((read-lines ()
+                  (let ((line (read-line file-stream nil nil)))
+                    (if line
+                        (cons-stream line (read-lines))
+                        (progn
+                          (close file-stream)
+                          empty-stream)))))
+         (read-lines))))
+    (string
+     ;; Parse string as CSV
+     (with-input-from-string (string-stream source)
+       (labels ((read-lines ()
+                  (let ((line (read-line string-stream nil nil)))
+                    (if line
+                        (cons-stream line (read-lines))
+                        empty-stream))))
+         (read-lines))))))
+
+(defun parse-csv-stream (lines-stream provider line-number)
+  "Parses a stream of lines into a stream of csv-row structures.
+   Handles empty line skipping based on provider configuration."
+  (if (stream-null? lines-stream)
+      empty-stream
+      (let ((line (stream-car lines-stream)))
+        ;; Skip empty lines if configured
+        (if (and (csv-skip-empty-lines provider)
+                 (= 0 (length (string-trim '(#\Space #\Tab) line))))
+            ;; Skip this line
+            (parse-csv-stream (stream-cdr lines-stream) provider (1+ line-number))
+            ;; Parse this line
+            (cons-stream
+             (parse-csv-line line
+                           (csv-delimiter provider)
+                           (csv-trim-fields provider)
+                           line-number)
+             (parse-csv-stream (stream-cdr lines-stream)
+                             provider
+                             (1+ line-number)))))))
+
+(defmethod execute-provider ((provider csv-provider) source)
+  "Reads CSV from SOURCE and returns a csv-table structure.
+   SOURCE can be:
+   - pathname: path to CSV file
+   - string: CSV content as string
+   Returns a csv-table with headers and a stream of csv-rows."
+  (let* ((lines-stream (csv-lines-stream source))
+         (parsed-stream (parse-csv-stream lines-stream provider 1)))
+    (if (csv-has-header provider)
+        ;; First row is header
+        (if (stream-null? parsed-stream)
+            (make-csv-table :headers nil :rows empty-stream)
+            (let ((header-row (stream-car parsed-stream)))
+              (make-csv-table
+               :headers (csv-row-fields header-row)
+               :rows (stream-cdr parsed-stream))))
+        ;; No header - generate numeric headers
+        (if (stream-null? parsed-stream)
+            (make-csv-table :headers nil :rows empty-stream)
+            (let* ((first-row (stream-car parsed-stream))
+                   (num-fields (length (csv-row-fields first-row)))
+                   (headers (loop for i from 0 below num-fields
+                                 collect (format nil "Column~A" i))))
+              (make-csv-table
+               :headers headers
+               :rows parsed-stream))))))
