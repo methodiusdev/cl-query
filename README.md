@@ -1,0 +1,3 @@
+- Basic streams implementation (SICP inspired)
+- Several LINQ-like query functions (FROM (from, from-csv), SELECT, WHERE, TAKE, SKIP, DISTINCT, AGGREGATE, GROUP BY
+- You can query on LISP sequences (lists, vectors,...) or on csv file by now.
