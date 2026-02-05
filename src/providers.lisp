@@ -140,3 +140,31 @@
               (make-csv-table
                :headers headers
                :rows parsed-stream))))))
+
+(defun csv-row-as-alist (row headers)
+  "Converts a csv-row to an alist using HEADERS as keys.
+   Keys are interned as keywords."
+  (when row
+    (mapcar (lambda (header field)
+              (cons (intern (string-upcase header) :keyword)
+                    field))
+            headers
+            (csv-row-fields row))))
+
+(defun csv-row-as-plist (row headers)
+  "Converts a csv-row to a plist using HEADERS as keys.
+   Keys are interned as keywords."
+  (when row
+    (loop for header in headers
+          for field in (csv-row-fields row)
+          collect (intern (string-upcase header) :keyword)
+          collect field)))
+
+(defun csv-row-as-hash-table (row headers &key (test #'equal))
+  "Converts a csv-row to a hash table using HEADERS as keys (strings)."
+  (when row
+    (let ((ht (make-hash-table :test test)))
+      (loop for header in headers
+            for field in (csv-row-fields row)
+            do (setf (gethash header ht) field))
+      ht)))
